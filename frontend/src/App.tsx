@@ -1,48 +1,43 @@
-import { useState } from "react";
-import { ImageUpload } from "./components/ImageUpload";
-import { ChessGame } from "./components/ChessGame";
+import { useState } from 'react';
+import { Nav } from './components/Nav';
+import { Settings } from './components/Settings';
+import { GameReview } from './components/review/GameReview';
+import { Dashboard } from './components/dashboard/Dashboard';
+import { TrainingPlan } from './components/plan/TrainingPlan';
+import { OpeningLibrary } from './components/openings/OpeningLibrary';
+import { FreePlay } from './components/FreePlay';
+import type { AggregatedStats } from './types';
+
+export type Tab = 'freeplay' | 'review' | 'dashboard' | 'plan' | 'openings';
 
 export default function App() {
-  const [fen, setFen] = useState<string | undefined>();
+  const [tab, setTab] = useState<Tab>('freeplay');
+  const [showSettings, setShowSettings] = useState(false);
+  const [planStats, setPlanStats] = useState<AggregatedStats | null>(null);
+
+  function handleGeneratePlan(stats: AggregatedStats) {
+    setPlanStats(stats);
+    setTab('plan');
+  }
 
   return (
     <div style={styles.root}>
-      <h1 style={styles.title}>Chess Analyzer</h1>
-      <div style={styles.layout}>
-        {/* Left panel */}
-        <div style={styles.left}>
-          <ImageUpload onFenReady={setFen} />
-          {fen && (
-            <div style={styles.fenBox}>
-              <p style={styles.fenLabel}>FEN</p>
-              <code style={styles.fenCode}>{fen}</code>
-            </div>
-          )}
-        </div>
+      <Nav active={tab} onChange={setTab} onSettings={() => setShowSettings(true)} />
 
-        {/* Board + controls */}
-        <ChessGame initialFen={fen} />
-      </div>
+      <main style={styles.main}>
+        {tab === 'freeplay' && <FreePlay />}
+        {tab === 'review' && <GameReview />}
+        {tab === 'dashboard' && <Dashboard onGeneratePlan={handleGeneratePlan} />}
+        {tab === 'plan' && <TrainingPlan preloadedStats={planStats} />}
+        {tab === 'openings' && <OpeningLibrary />}
+      </main>
+
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  root: { minHeight: "100vh", padding: "28px 32px", maxWidth: 1100, margin: "0 auto" },
-  title: {
-    textAlign: "center", fontSize: 26, fontWeight: 700,
-    marginBottom: 28, color: "#8bc",
-    letterSpacing: 2, textTransform: "uppercase",
-  },
-  layout: {
-    display: "flex", gap: 40, justifyContent: "center",
-    alignItems: "flex-start", flexWrap: "wrap",
-  },
-  left: {
-    display: "flex", flexDirection: "column", gap: 16,
-    width: 240, paddingTop: 32,
-  },
-  fenBox: { background: "#0d1117", borderRadius: 8, padding: "10px 12px" },
-  fenLabel: { margin: "0 0 4px", fontSize: 10, color: "#445", fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" },
-  fenCode: { fontSize: 10, color: "#4a7", wordBreak: "break-all", lineHeight: 1.7, fontFamily: "monospace" },
+  root: { minHeight: '100vh', background: '#0f172a', color: '#e5e7eb' },
+  main: { minHeight: 'calc(100vh - 52px)' },
 };
